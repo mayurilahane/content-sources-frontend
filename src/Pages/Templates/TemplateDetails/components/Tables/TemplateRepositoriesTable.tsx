@@ -74,7 +74,7 @@ export default function TemplateRepositoriesTable({
   }, [snapshotList.length]);
 
   const columnHeaders = [
-    { name: 'Repository Name' },
+    { name: 'Repository' },
     { name: 'Snapshot Date', width: 20 },
     { name: 'Change', width: 15 },
     { name: 'Packages', width: 15 },
@@ -98,7 +98,7 @@ export default function TemplateRepositoriesTable({
             <Thead>
               <Tr>
                 {columnHeaders.map(({ name, width }, index) =>
-                  name === 'Repository Name' || name === 'Snapshot Date' ? (
+                  name === 'Repository' || name === 'Snapshot Date' ? (
                     <Th
                       width={width as BaseCellProps['width']}
                       key={index + name + '_header'}
@@ -162,7 +162,7 @@ export default function TemplateRepositoriesTable({
                       </Hide>
                     </Flex>
                   </Td>
-                  <Td>{formatDateDDMMMYYYY(created_at, true)}</Td>
+                  <Td>{formatDateUTC(created_at, true)}</Td>
                   <Td>
                     <ChangedArrows
                       addedCount={added_counts?.['rpm.package'] || 0}

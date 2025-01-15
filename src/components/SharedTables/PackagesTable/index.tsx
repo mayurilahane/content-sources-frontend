@@ -41,7 +41,7 @@ export default function PackagesTable({
     setPrev(packagesList.length || 10);
   }, [packagesList.length]);
 
-  const columnHeaders = ['Name', 'Version', 'Release', 'Arch'];
+  const columnHeaders = ['Name', 'Version', 'Release', 'Architecture'];
 
   return (
     <>
