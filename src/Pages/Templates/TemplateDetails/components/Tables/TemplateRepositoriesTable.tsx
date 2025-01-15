@@ -1,7 +1,7 @@
 import ConditionalTooltip from 'components/ConditionalTooltip/ConditionalTooltip';
 import EmptyTableState from 'components/EmptyTableState/EmptyTableState';
 import Hide from 'components/Hide/Hide';
-import { formatDateDDMMMYYYY } from 'helpers';
+import { formatDateUTC } from 'helpers';
 import useDeepCompareEffect from 'Hooks/useDeepCompareEffect';
 import useRootPath from 'Hooks/useRootPath';
 import { isEmpty } from 'lodash';
@@ -74,7 +74,7 @@ export default function TemplateRepositoriesTable({
   }, [snapshotList.length]);
 
   const columnHeaders = [
-    { name: 'Repository' },
+    { name: 'Name' },
     { name: 'Snapshot Date', width: 20 },
     { name: 'Change', width: 15 },
     { name: 'Packages', width: 15 },
@@ -98,7 +98,7 @@ export default function TemplateRepositoriesTable({
             <Thead>
               <Tr>
                 {columnHeaders.map(({ name, width }, index) =>
-                  name === 'Repository' || name === 'Snapshot Date' ? (
+                  name === 'Name' || name === 'Snapshot Date' ? (
                     <Th
                       width={width as BaseCellProps['width']}
                       key={index + name + '_header'}
@@ -162,7 +162,7 @@ export default function TemplateRepositoriesTable({
                       </Hide>
                     </Flex>
                   </Td>
-                  <Td>{formatDateUTC(created_at, true)}</Td>
+                  <Td>{formatDateUTC(created_at)}</Td>
                   <Td>
                     <ChangedArrows
                       addedCount={added_counts?.['rpm.package'] || 0}
