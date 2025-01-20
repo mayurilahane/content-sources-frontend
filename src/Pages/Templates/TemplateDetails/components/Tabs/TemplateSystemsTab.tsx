@@ -4,12 +4,6 @@ import {
   Flex,
   FlexItem,
   Grid,
-  InputGroup,
-  InputGroupItem,
-  InputGroupText,
-  Pagination,
-  PaginationVariant,
-  TextInput,
 } from '@patternfly/react-core';
 import { global_BackgroundColor_100, global_Color_200 } from '@patternfly/react-tokens';
 import { useEffect, useMemo, useState } from 'react';
@@ -28,8 +22,6 @@ import ConditionalTooltip from 'components/ConditionalTooltip/ConditionalTooltip
 import { useAppContext } from 'middleware/AppContext';
 import { ADD_ROUTE } from 'Routes/constants';
 import Hide from 'components/Hide/Hide';
-import SystemsDeleteKebab from 'components/SharedTables/SystemsTable/Components/SystemsDeleteKebab';
-import { SearchIcon } from '@patternfly/react-icons';
 import useDebounce from 'Hooks/useDebounce';
 
 const useStyles = createUseStyles({
@@ -74,7 +66,7 @@ export default function TemplateSystemsTab() {
   const storedPerPage = Number(localStorage.getItem(perPageKey)) || 20;
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [perPage, setPerPage] = useState(storedPerPage);
+  const [perPage] = useState(storedPerPage);
 
   const [activeSortIndex, setActiveSortIndex] = useState<number>(-1);
   const [activeSortDirection, setActiveSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -143,7 +135,6 @@ export default function TemplateSystemsTab() {
       ]);
     }
   };
-  const onSetPage = (_, newPage) => setPage(newPage);
 
   const handleSelectItem = (id: string) => {
     if (selectedList.has(id)) {
@@ -153,15 +144,6 @@ export default function TemplateSystemsTab() {
     }
   };
 
-  const deselectAll = () => {
-    setSelected([]);
-  };
-
-  const onPerPageSelect = (_, newPerPage, newPage) => {
-    setPerPage(newPerPage);
-    setPage(newPage);
-    localStorage.setItem(perPageKey, newPerPage.toString());
-  };
 
   const fetchingOrLoading = isFetching || isLoading || isDeleting;
 
@@ -198,61 +180,6 @@ export default function TemplateSystemsTab() {
 
   return (
     <Grid className={classes.mainContainer}>
-      <InputGroup className={classes.topContainer}>
-        <Flex gap={{ default: 'gapMd' }}>
-          <InputGroupItem>
-            <TextInput
-              id='search'
-              ouiaId='name_search'
-              placeholder='Filter by name'
-              value={searchQuery}
-              onChange={(_event, value) => setSearchQuery(value)}
-            />
-            <InputGroupText id='search-icon'>
-              <SearchIcon />
-            </InputGroupText>
-          </InputGroupItem>
-          <FlexItem className={classes.ctions}>
-            <ConditionalTooltip
-              content={`You do not have the required ${missingRequirements} to perform this action.`}
-              show={isMissingRequirements}
-              setDisabled
-            >
-              <Button
-                id='assignTemplateToSystems'
-                ouiaId='assign_template_to_systems'
-                variant='primary'
-                isDisabled={fetchingOrLoading}
-                onClick={() => navigate('add')}
-              >
-                Assign template to systems
-              </Button>
-            </ConditionalTooltip>
-          </FlexItem>
-          <ConditionalTooltip
-            content={`You do not have the required ${missingRequirements} to perform this action.`}
-            show={isMissingRequirements}
-            setDisabled
-          >
-            <SystemsDeleteKebab
-              deleteFromSystems={deleteFromSystems}
-              deselectAll={deselectAll}
-              isDisabled={!rbac?.templateWrite}
-              selected={selected}
-            />
-          </ConditionalTooltip>
-        </Flex>
-        <Pagination
-          id='top-pagination-id'
-          widgetId='topPaginationWidgetId'
-          itemCount={total_items}
-          perPage={perPage}
-          page={page}
-          onSetPage={onSetPage}
-          isCompact
-          onPerPageSelect={onPerPageSelect}
-        />
-      </InputGroup>
       <Hide hide={!!total_items}>
         <Bullseye data-ouia-component-id='systems_list_page'>
           <EmptyTableState
@@ -297,18 +224,6 @@ export default function TemplateSystemsTab() {
       </Hide>
       <Flex className={classes.bottomContainer}>
         <FlexItem />
-        <FlexItem>
-          <Pagination
-            id='bottom-pagination-id'
-            widgetId='bottomPaginationWidgetId'
-            itemCount={total_items}
-            perPage={perPage}
-            page={page}
-            onSetPage={onSetPage}
-            variant={PaginationVariant.bottom}
-            onPerPageSelect={onPerPageSelect}
-          />
-        </FlexItem>
       </Flex>
       <Outlet />
     </Grid>
