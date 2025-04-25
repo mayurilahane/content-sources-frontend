@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { navigateToRepositories } from './helpers/navHelpers';
+import { navigateToRepositories, navigateToTemplates } from './helpers/navHelpers';
 import { deleteAllRepos } from './helpers/deleteRepositories';
 import {
   closePopupsIfExist,
@@ -102,4 +102,72 @@ test.describe('Snapshot Repositories', () => {
       await expect(row).not.toBeVisible();
     });
   });
+});
+
+test('Snapshot deletion', async ({ page }) => {
+  await navigateToRepositories(page);
+  await closePopupsIfExist(page);
+
+  const repoNamePrefix = 'snapshot-deletion';
+  const randomName = () => `${(Math.random() + 1).toString(36).substring(2, 6)}`;
+  const repoName = `${repoNamePrefix}-${randomName()}`;
+  const templateName = `Test-template-${randomName()}`;
+
+  await test.step('Create a repository', async () => {
+    await page.getByRole('button', { name: 'Add repositories' }).first().click();
+    await expect(page.getByRole('dialog', { name: 'Add custom repositories' })).toBeVisible();
+    await page.getByLabel('Name').fill(`${repoName}`);
+    await page.getByLabel('Snapshotting').click();
+    await page.getByLabel('URL').fill('https://fedorapeople.org/groups/katello/fakerepos/zoo/');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    const row = await getRowByNameOrUrl(page, repoName);
+    await expect(row.getByText('Valid')).toBeVisible({ timeout: 60000 });
+  });
+
+  // Edit the repository and create snapshots
+  await test.step('Create a repository', async () => {
+    const row = await getRowByNameOrUrl(page, repoName);
+    await expect(row.getByText('Valid')).toBeVisible({ timeout: 60000 });
+    for (let i = 2; i <= 4; i++) {
+      await test.step(`Edit repository and create snapshot ${i}`, async () => {
+        // Open the edit modal
+        await row.getByLabel('Kebab toggle').click();
+        await row.getByRole('menuitem', { name: 'Edit' }).click();
+        await page
+          .getByLabel('URL')
+          .fill(`https://fedorapeople.org/groups/katello/fakerepos/zoo/${i}/`);
+        await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+        await expect(row.getByText('Valid')).toBeVisible({ timeout: 60000 });
+      });
+    }
+    // Verify the snapshot count for the repo.
+    await row.getByTestId('snapshot_list_table').textContent();
+    // Create a template which uses the repo and assert that is uses the latest snapshot
+    await navigateToTemplates(page);
+    await page.getByRole('button', { name: 'Add content template' }).click();
+    await page.getByRole('button', { name: 'Select architecture' }).click();
+    await page.getByRole('option', { name: 'aarch64' }).click();
+    await page.getByRole('button', { name: 'Select version' }).click();
+    await page.getByRole('option', { name: 'el9' }).click();
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    // search for row in the add content template modal
+    await page.getByRole('textbox', { name: 'Filter by name/url' }).fill(repoName);
+    await page.getByRole('gridcell', { name: 'Select row' }).locator('label').click();
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await page.getByRole('radio', { name: 'Use latest content' }).check();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await page.getByPlaceholder('Enter name').fill(``);
+    await page.getByPlaceholder('Description').fill('Template test');
+    await expect(page.getByText('Valid')).toBeVisible({ timeout: 60000 });
+    // Verify the template is created and uses the latest snapshot
+    const templateRow = await getRowByNameOrUrl(page, templateName);
+    await expect(templateRow.getByText('Valid')).toBeVisible({ timeout: 60000 });
+    const templateSnapshotCount = await templateRow
+      .getByTestId('snapshot_list_table')
+      .textContent();
+  });
+
+  // Assert that the template snapshot count matches the repo snapshot count
+  // Test deletion of a single snapshot.
+  // Test bulk deletion of multiple snapshots.
 });
