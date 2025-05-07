@@ -60,7 +60,7 @@ test.describe('Snapshot Package Count and List', async () => {
       const editedRepoPackageCountValue = await editedRow
         .getByTestId('package_count_button')
         .textContent();
-      await page.getByRole('button', { name: 'Kebab toggle' }).click();
+      await editedRow.getByRole('button', { name: 'Kebab toggle' }).click();
       await page.getByRole('menuitem', { name: 'View all snapshots' }).click();
       // refresh page to get the updated snapshot
       await page.reload();
